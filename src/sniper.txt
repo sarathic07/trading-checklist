@@ -18,6 +18,8 @@ bool i_showDebug = input.bool(false, "Show Sniper Debug Columns",
 // ═══════════════════════════════════════════════
 // SYMBOLS
 // ═══════════════════════════════════════════════
+float spot = request.security("NSE:NIFTY", timeframe.period, close)
+int atm = math.round(spot / 100) * 100
 string B = "NSE:NIFTY" + i_exp
 
 string s0p = B + "P" + str.tostring(i_k1 - 100)
@@ -98,7 +100,7 @@ var table tbl = table.new(
 f_row(row, strike, c_ltp, p_ltp, snp, dbg_pe, dbg_ce, c_pdc, p_pdc) =>
     int c = 0
 
-    string s = strike == i_k3 ? str.tostring(strike) + " ◉" : str.tostring(strike)
+    string s = strike == atm ? str.tostring(strike) + " ◉" : str.tostring(strike)
     table.cell(tbl, c, row, s, text_color=color.white)
     c := c + 1
 
