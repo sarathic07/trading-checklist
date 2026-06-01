@@ -1,0 +1,156 @@
+//@version=5
+indicator("Nifty Sniper Point Table (Debug)", overlay=true, max_bars_back=500)
+
+// ═══════════════════════════════════════════════
+// INPUTS
+// ═══════════════════════════════════════════════
+string i_exp = input.string("250725", "Expiry Code (YYMMDD)")
+
+int i_k3 = input.int(25000, "Strike 3 (ATM ◉)", step=50)
+int i_k1 = i_k3 - 200
+int i_k2 = i_k3 - 100
+int i_k4 = i_k3 + 100
+int i_k5 = i_k3 + 200
+
+bool i_showDebug = input.bool(false, "Show Sniper Debug Columns",
+     tooltip="Show PDC (-100 PE) and PDC (+100 CE) used in sniper calculation")
+
+// ═══════════════════════════════════════════════
+// SYMBOLS
+// ═══════════════════════════════════════════════
+string B = "NSE:NIFTY" + i_exp
+
+string s0p = B + "P" + str.tostring(i_k1 - 100)
+string s1c = B + "C" + str.tostring(i_k1)
+string s1p = B + "P" + str.tostring(i_k1)
+string s2c = B + "C" + str.tostring(i_k2)
+string s2p = B + "P" + str.tostring(i_k2)
+string s3c = B + "C" + str.tostring(i_k3)
+string s3p = B + "P" + str.tostring(i_k3)
+string s4c = B + "C" + str.tostring(i_k4)
+string s4p = B + "P" + str.tostring(i_k4)
+string s5c = B + "C" + str.tostring(i_k5)
+string s5p = B + "P" + str.tostring(i_k5)
+string s6c = B + "P" + str.tostring(i_k5 + 100)
+
+// ═══════════════════════════════════════════════
+// PDC (Previous Day Close)
+// ═══════════════════════════════════════════════
+float pdc_s0p = request.security(s0p, "D", close[1], lookahead=barmerge.lookahead_on)
+float pdc_s1c = request.security(s1c, "D", close[1], lookahead=barmerge.lookahead_on)
+float pdc_s1p = request.security(s1p, "D", close[1], lookahead=barmerge.lookahead_on)
+float pdc_s2c = request.security(s2c, "D", close[1], lookahead=barmerge.lookahead_on)
+float pdc_s2p = request.security(s2p, "D", close[1], lookahead=barmerge.lookahead_on)
+float pdc_s3c = request.security(s3c, "D", close[1], lookahead=barmerge.lookahead_on)
+float pdc_s3p = request.security(s3p, "D", close[1], lookahead=barmerge.lookahead_on)
+float pdc_s4c = request.security(s4c, "D", close[1], lookahead=barmerge.lookahead_on)
+float pdc_s4p = request.security(s4p, "D", close[1], lookahead=barmerge.lookahead_on)
+float pdc_s5c = request.security(s5c, "D", close[1], lookahead=barmerge.lookahead_on)
+float pdc_s5p = request.security(s5p, "D", close[1], lookahead=barmerge.lookahead_on)
+float pdc_s6c = request.security(s6c, "D", close[1], lookahead=barmerge.lookahead_on)
+
+// ═══════════════════════════════════════════════
+// LTP
+// ═══════════════════════════════════════════════
+float ltp_s0p = request.security(s0p, timeframe.period, close)
+float ltp_s1c = request.security(s1c, timeframe.period, close)
+float ltp_s1p = request.security(s1p, timeframe.period, close)
+float ltp_s2c = request.security(s2c, timeframe.period, close)
+float ltp_s2p = request.security(s2p, timeframe.period, close)
+float ltp_s3c = request.security(s3c, timeframe.period, close)
+float ltp_s3p = request.security(s3p, timeframe.period, close)
+float ltp_s4c = request.security(s4c, timeframe.period, close)
+float ltp_s4p = request.security(s4p, timeframe.period, close)
+float ltp_s5c = request.security(s5c, timeframe.period, close)
+float ltp_s5p = request.security(s5p, timeframe.period, close)
+float ltp_s6c = request.security(s6c, timeframe.period, close)
+
+// ═══════════════════════════════════════════════
+// SNIPER CALCULATION (UNCHANGED)
+// ═══════════════════════════════════════════════
+float sniper1 = (pdc_s0p + pdc_s2c) / 2
+float sniper2 = (pdc_s1p + pdc_s3c) / 2
+float sniper3 = (pdc_s2p + pdc_s4c) / 2
+float sniper4 = (pdc_s3p + pdc_s5c) / 2
+float sniper5 = (pdc_s4p + pdc_s6c) / 2
+
+// ═══════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════
+f_fmt(v) => na(v) ? "–" : str.tostring(math.round(v, 2))
+f_txt(ltp, pdc, snp) => na(ltp) or na(snp) or na(pdc) ? "–" : ltp > (snp + pdc) ? "▲▲▲▲" : ltp > snp ? "▲▲" : "▼▼"
+f_col(ltp, snp) => na(ltp) or na(snp) ? color.gray : ltp > snp ? color.lime : color.red
+
+// ═══════════════════════════════════════════════
+// TABLE
+// ═══════════════════════════════════════════════
+int COLS = i_showDebug ? 10 : 8
+
+var table tbl = table.new(
+     position.bottom_right, 8, 7,
+     bgcolor      = color.new(#080812, 8),
+     border_width = 1,
+     border_color = color.new(#2a2a4a, 0),
+     frame_width  = 2,
+     frame_color  = color.new(#4a4a8a, 0))
+
+
+f_row(row, strike, c_ltp, p_ltp, snp, dbg_pe, dbg_ce, c_pdc, p_pdc) =>
+    int c = 0
+
+    string s = strike == i_k3 ? str.tostring(strike) + " ◉" : str.tostring(strike)
+    table.cell(tbl, c, row, s, text_color=color.white)
+    c := c + 1
+
+    table.cell(tbl, c, row, f_fmt(c_ltp), text_color=color.white)
+    c := c + 1
+
+    table.cell(tbl, c, row, f_fmt(snp), text_color=color.white)
+    c := c + 1
+
+    table.cell(tbl, c, row, f_txt(c_ltp, c_pdc, snp), text_color=f_col(c_ltp, snp))
+    c := c + 1
+
+    if i_showDebug
+        table.cell(tbl, c, row, f_fmt(dbg_pe), text_color=color.white)
+        c := c + 1
+        table.cell(tbl, c, row, f_fmt(dbg_ce), text_color=color.white)
+        c := c + 1
+
+    table.cell(tbl, c, row, f_fmt(p_ltp), text_color=color.white)
+    c := c + 1
+
+    table.cell(tbl, c, row, f_fmt(snp), text_color=color.white)
+    c := c + 1
+
+    table.cell(tbl, c, row, f_txt(p_ltp, p_pdc, snp), text_color=f_col(p_ltp, snp))
+
+
+if barstate.islast
+    // Headers
+    string[] hdr = array.new_string()
+ 
+    array.push(hdr, "Strike")
+    array.push(hdr, "CE LTP")
+    array.push(hdr, "CE Sniper")
+    array.push(hdr, "CE Signal")
+    
+    if i_showDebug
+        array.push(hdr, "PDC (-100 PE)")
+        array.push(hdr, "PDC (+100 CE)")
+
+    array.push(hdr, "PE LTP")
+    array.push(hdr, "PE Sniper")
+    array.push(hdr, "PE Signal")
+
+    int hdrSize = array.size(hdr)
+    
+    for i = 0 to hdrSize - 1
+        table.cell(tbl, i, 1, array.get(hdr, i), text_color=color.white)
+
+
+    f_row(2, i_k1, ltp_s1c, ltp_s1p, sniper1, pdc_s0p, pdc_s2c, pdc_s1c, pdc_s1p)
+    f_row(3, i_k2, ltp_s2c, ltp_s2p, sniper2, pdc_s1p, pdc_s3c, pdc_s2c, pdc_s2p)
+    f_row(4, i_k3, ltp_s3c, ltp_s3p, sniper3, pdc_s2p, pdc_s4c, pdc_s3c, pdc_s3p)
+    f_row(5, i_k4, ltp_s4c, ltp_s4p, sniper4, pdc_s3p, pdc_s5c, pdc_s4c, pdc_s4p)
+    f_row(6, i_k5, ltp_s5c, ltp_s5p, sniper5, pdc_s4p, pdc_s6c, pdc_s5c, pdc_s5p)
