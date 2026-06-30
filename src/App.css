@@ -1,3 +1,9 @@
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 .container {
   max-width: 700px;
   margin: auto;
@@ -37,4 +43,194 @@ li {
 
 button {
   margin-left: 10px;
+}
+
+/* Styles for ATMStrikeAnalyzer */
+.analyzer-root {
+  height: 100%;
+  background: #0B0E14;
+  color: #E6E8EC;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+}
+
+.analyzer-container {
+  max-width: 760px;
+  margin: 0 auto;
+  padding-top: 2rem;
+}
+
+.analyzer-header {
+  margin-bottom: 28px;
+}
+
+.meta-label {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: #6FCF97;
+  text-transform: uppercase;
+  font-family: 'IBM Plex Mono', monospace;
+  margin-bottom: 6px;
+}
+
+.main-title {
+  font-size: 26px;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.file-input-wrap {
+  margin-top: 12px;
+}
+
+.file-error {
+  margin-top: 8px;
+  color: #F5A3A3;
+  font-size: 13px;
+}
+
+.prevclose-badge {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #E0B25F;
+  background: #241D11;
+  border: 1px solid #4A3A1B;
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: inline-block;
+}
+
+.error-box {
+  padding: 12px 14px;
+  background: #2A1418;
+  border: 1px solid #5C2630;
+  border-radius: 8px;
+  color: #F5A3A3;
+  font-size: 13px;
+}
+
+.result-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.card {
+  background: #11141C;
+  border: 1px solid #1F2430;
+  border-radius: 12px;
+  padding: 20px 22px;
+}
+
+.card-subtitle {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #6FCF97;
+  font-family: 'IBM Plex Mono', monospace;
+  margin-bottom: 10px;
+}
+
+.atm-value {
+  font-size: 34px;
+  font-weight: 700;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: -0.01em;
+}
+
+.price-row {
+  display: flex;
+  gap: 24px;
+  margin-top: 14px;
+  font-size: 13px;
+}
+
+.muted-label {
+  color: #8B92A5;
+}
+
+.mono {
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.card-footer {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #1F2430;
+  display: flex;
+  gap: 32px;
+}
+
+.small-uppercase {
+  font-size: 11px;
+  color: #8B92A5;
+  text-transform: uppercase;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-family: 'IBM Plex Mono', monospace;
+  margin-top: 4px;
+}
+
+.stat-value-accent {
+  color: #6FCF97;
+}
+
+.strike-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.strike-card {
+  background: #11141C;
+  border: 1px solid #1F2430;
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+
+.card-subtitle-small {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8B92A5;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.empty-text {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #5C6478;
+}
+
+.strike-value {
+  font-size: 26px;
+  font-weight: 700;
+  font-family: 'IBM Plex Mono', monospace;
+  margin-top: 6px;
+}
+
+.strike-lines {
+  margin-top: 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.line-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.line-label {
+  color: #8B92A5;
+}
+
+.line-value {
+  font-family: 'IBM Plex Mono', monospace;
+  color: #E6E8EC;
+}
+
+.line-value.accent {
+  color: #6FCF97;
 }

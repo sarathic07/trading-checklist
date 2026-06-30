@@ -1,0 +1,149 @@
+//@version=5
+indicator("Index Option Engine (Clean Pro)", overlay=true, max_bars_back=500)
+
+// ═══════════════════════════════════════════════
+// INPUTS
+// ═══════════════════════════════════════════════
+string i_index = syminfo.root == "SENSEX" ? "Sensex" : "Nifty"
+string i_exp   = input.string("260602", "Expiry Code (YYMMDD)")
+int i_k3       = input.int(25000, "Strike (ATM ◉)", step=50)
+
+int step = syminfo.root == "SENSEX" ? 100 : 50
+
+int i_k0 = i_k3 - 3 * step
+int i_k1 = i_k3 - 2 * step
+int i_k2 = i_k3 - 1 * step
+int i_k4 = i_k3 + 1 * step
+int i_k5 = i_k3 + 2 * step
+int i_k6 = i_k3 + 3 * step
+
+minEdge = input.float(10, "Min Edge (points filter)")
+
+// ═══════════════════════════════════════════════
+// BASE SYMBOL
+// ═══════════════════════════════════════════════
+string base = i_index == "Nifty" ? "NSE:NIFTY" + i_exp : "BSE:BSX" + i_exp
+
+// ═══════════════════════════════════════════════
+// OPTION SYMBOLS (YOUR LOGIC ✅)
+// ═══════════════════════════════════════════════
+string s0c = base + "C" + str.tostring(i_k0)
+string s0p = base + "P" + str.tostring(i_k0)
+
+string s1c = base + "C" + str.tostring(i_k1)
+string s1p = base + "P" + str.tostring(i_k1)
+
+string s2c = base + "C" + str.tostring(i_k2)
+string s2p = base + "P" + str.tostring(i_k2)
+
+string s3c = base + "C" + str.tostring(i_k3)
+string s3p = base + "P" + str.tostring(i_k3)
+
+string s4c = base + "C" + str.tostring(i_k4)
+string s4p = base + "P" + str.tostring(i_k4)
+
+string s5c = base + "C" + str.tostring(i_k5)
+string s5p = base + "P" + str.tostring(i_k5)
+
+string s6c = base + "C" + str.tostring(i_k6)
+string s6p = base + "P" + str.tostring(i_k6)
+
+// ═══════════════════════════════════════════════
+// SPOT
+// ═══════════════════════════════════════════════
+float spot = request.security(i_index == "Nifty" ? "NSE:NIFTY" : "BSE:SENSEX", timeframe.period, close)
+
+// ═══════════════════════════════════════════════
+// FETCH PRICES
+// ═══════════════════════════════════════════════
+get(sym) => request.security(sym, timeframe.period, close)
+
+ce0 = get(s0c), pe0 = get(s0p)
+ce1 = get(s1c), pe1 = get(s1p)
+ce2 = get(s2c), pe2 = get(s2p)
+ce3 = get(s3c), pe3 = get(s3p)
+ce4 = get(s4c), pe4 = get(s4p)
+ce5 = get(s5c), pe5 = get(s5p)
+ce6 = get(s6c), pe6 = get(s6p)
+
+// ═══════════════════════════════════════════════
+// CORE LOGIC
+// ═══════════════════════════════════════════════
+calc(strike, ce, pe) =>
+    valid    = not na(ce) and not na(pe)
+    straddle = valid ? ce + pe : na
+    reqMove  = math.abs(spot - strike)
+    edge     = valid ? reqMove - straddle : na
+
+    strength =
+         valid and edge > minEdge  ? "STRONG BUY" :
+         valid and edge < -minEdge ? "STRONG SELL" :
+         "WEAK"
+
+    signal =
+         not valid ? "NA" :
+         strike > spot ?
+             (edge > minEdge ? "BUY CE" :
+              edge < -minEdge ? "SELL CE" : "WAIT") :
+
+         strike < spot ?
+             (edge > minEdge ? "BUY PE" :
+              edge < -minEdge ? "SELL PE" : "WAIT") :
+
+         (edge > minEdge ? "BUY STRADDLE" :
+          edge < -minEdge ? "SELL STRADDLE" : "WAIT")
+
+    [straddle, reqMove, edge, strength, signal]
+
+// ═══════════════════════════════════════════════
+// CALCULATIONS
+// ═══════════════════════════════════════════════
+[a0,b0,e0,st0,si0] = calc(i_k0, ce0, pe0)
+[a1,b1,e1,st1,si1] = calc(i_k1, ce1, pe1)
+[a2,b2,e2,st2,si2] = calc(i_k2, ce2, pe2)
+[a3,b3,e3,st3,si3] = calc(i_k3, ce3, pe3)
+[a4,b4,e4,st4,si4] = calc(i_k4, ce4, pe4)
+[a5,b5,e5,st5,si5] = calc(i_k5, ce5, pe5)
+[a6,b6,e6,st6,si6] = calc(i_k6, ce6, pe6)
+
+// ═══════════════════════════════════════════════
+// BEST EDGE
+// ═══════════════════════════════════════════════
+maxEdge = math.max(math.max(math.max(e0,e1), math.max(e2,e3)),
+                   math.max(math.max(e4,e5), e6))
+
+// ═══════════════════════════════════════════════
+// TABLE
+// ═══════════════════════════════════════════════
+var table t = table.new(position.top_right, 6, 8, border_width=1, bgcolor = color.rgb(77, 78, 78))
+
+if bar_index == 0
+    table.cell(t, 0, 0, "Strike", text_color =color.white)
+    table.cell(t, 1, 0, "Straddle", text_color =color.white)
+    table.cell(t, 2, 0, "ReqMove", text_color =color.white)
+    table.cell(t, 3, 0, "Edge", text_color =color.white)
+    table.cell(t, 4, 0, "Strength", text_color =color.white)
+    table.cell(t, 5, 0, "Signal", text_color =color.white)
+
+sigColor(s) =>
+    str.contains(s, "BUY") ? color.green : str.contains(s, "SELL") ? color.red :color.gray
+
+highlight(edge) =>
+    edge == maxEdge ? color.rgb(94, 86, 22) : na
+
+row(r, strike, strd, req, edge, strength, sig) =>
+    bg = highlight(edge)
+    table.cell(t, 0, r, str.tostring(strike), bgcolor=bg, text_color =color.white)
+    table.cell(t, 1, r, str.tostring(strd), text_color =color.white)
+    table.cell(t, 2, r, str.tostring(req), text_color =color.white)
+    table.cell(t, 3, r, str.tostring(edge), bgcolor=bg, text_color =color.white)
+    table.cell(t, 4, r, strength, text_color =color.white)
+    table.cell(t, 5, r, sig, bgcolor=sigColor(sig), text_color =color.white)
+
+row(1, i_k0, a0,b0,e0,st0,si0)
+row(2, i_k1, a1,b1,e1,st1,si1)
+row(3, i_k2, a2,b2,e2,st2,si2)
+row(4, i_k3, a3,b3,e3,st3,si3)
+row(5, i_k4, a4,b4,e4,st4,si4)
+row(6, i_k5, a5,b5,e5,st5,si5)
+row(7, i_k6, a6,b6,e6,st6,si6)

@@ -6,14 +6,14 @@ indicator("Index Sniper", overlay=true, max_bars_back=500)
 // ═══════════════════════════════════════════════
 string i_index = syminfo.root == "SENSEX" ? "Sensex" : "Nifty"
 string i_exp = input.string("260602", "Expiry Code (YYMMDD)")
-int i_k3 = input.int(25000, "Strike (ATM ◉)", step=100)
+int i_k3 = input.int(25000, "Strike (ATM ◉)", step=50)
 
-int i_k0 = i_k3 - 300
-int i_k1 = i_k3 - 200
-int i_k2 = i_k3 - 100
-int i_k4 = i_k3 + 100
-int i_k5 = i_k3 + 200
-int i_k6 = i_k3 + 300
+int i_k0 = i_k3 - (syminfo.root == "SENSEX" ? 300 : 150)
+int i_k1 = i_k3 - (syminfo.root == "SENSEX" ? 200 : 100)
+int i_k2 = i_k3 - (syminfo.root == "SENSEX" ? 100 : 50)
+int i_k4 = i_k3 + (syminfo.root == "SENSEX" ? 100 : 50)
+int i_k5 = i_k3 + (syminfo.root == "SENSEX" ? 200 : 100)
+int i_k6 = i_k3 + (syminfo.root == "SENSEX" ? 300 : 150)
 
 bool i_showDebug = input.bool(false, "Show Sniper Debug Columns",
      tooltip="Show PDC (-100 PE) and PDC (+100 CE) used in sniper calculation")
@@ -23,7 +23,7 @@ bool i_showDebug = input.bool(false, "Show Sniper Debug Columns",
 // ═══════════════════════════════════════════════
 string i_sym = i_index == "Nifty" ? "NSE:NIFTY" : "BSE:SENSEX"
 float spot = request.security(i_sym, "1", close)
-int atm = math.round(spot / 100) * 100
+int atm = syminfo.root == "SENSEX" ?  math.round(spot / 100) * 100 : math.round(spot / 50) * 50
 string B = i_index == "Nifty" ? "NSE:NIFTY" + i_exp : "BSE:BSX" + i_exp
 
 string sp = B + "P" + str.tostring(i_k0 - 100)
@@ -183,3 +183,128 @@ if barstate.islast
     f_row(6, i_k4, ltp_s4c, ltp_s4p, sniper5, pdc_s3p, pdc_s5c, pdc_s4c, pdc_s4p, ltp_s5c, ltp_s3p)
     f_row(7, i_k5, ltp_s5c, ltp_s5p, sniper6, pdc_s4p, pdc_s6c, pdc_s5c, pdc_s5p, ltp_s6c, ltp_s4p)
     f_row(8, i_k6, ltp_s6c, ltp_s6p, sniper7, pdc_s5p, pdc_sc, pdc_s6c, pdc_s6p, ltp_sc, ltp_s5p)
+
+
+// ═══════════════════════════════════════════════
+// MEETING POINTS (CE/PE crossing premium value)
+// ═══════════════════════════════════════════════
+var float mp0_a = na,  var float mp0_b = na,  var float mp0_cur = na
+var float mp1_a = na,  var float mp1_b = na,  var float mp1_cur = na
+var float mp2_a = na,  var float mp2_b = na,  var float mp2_cur = na
+var float mp3_a = na,  var float mp3_b = na,  var float mp3_cur = na
+var float mp4_a = na,  var float mp4_b = na,  var float mp4_cur = na
+var float mp5_a = na,  var float mp5_b = na,  var float mp5_cur = na
+var float mp6_a = na,  var float mp6_b = na,  var float mp6_cur = na
+
+var int mt0_a = na,  var int mt0_b = na,  var int mt0_cur = na
+var int mt1_a = na,  var int mt1_b = na,  var int mt1_cur = na
+var int mt2_a = na,  var int mt2_b = na,  var int mt2_cur = na
+var int mt3_a = na,  var int mt3_b = na,  var int mt3_cur = na
+var int mt4_a = na,  var int mt4_b = na,  var int mt4_cur = na
+var int mt5_a = na,  var int mt5_b = na,  var int mt5_cur = na
+var int mt6_a = na,  var int mt6_b = na,  var int mt6_cur = na
+
+var bool ma0_a = false,  var bool ma0_b = false,  var bool ma0_cur = false
+var bool ma1_a = false,  var bool ma1_b = false,  var bool ma1_cur = false
+var bool ma2_a = false,  var bool ma2_b = false,  var bool ma2_cur = false
+var bool ma3_a = false,  var bool ma3_b = false,  var bool ma3_cur = false
+var bool ma4_a = false,  var bool ma4_b = false,  var bool ma4_cur = false
+var bool ma5_a = false,  var bool ma5_b = false,  var bool ma5_cur = false
+var bool ma6_a = false,  var bool ma6_b = false,  var bool ma6_cur = false
+
+cross_val(c, p) => (c + p) / 2
+
+if ta.cross(ltp_s0c, ltp_s0p)
+    mp0_a := mp0_b,  mt0_a := mt0_b,  ma0_a := ma0_b
+    mp0_b := mp0_cur,  mt0_b := mt0_cur,  ma0_b := ma0_cur
+    mp0_cur := cross_val(ltp_s0c, ltp_s0p)
+    mt0_cur := time
+    ma0_cur := i_k0 == atm
+
+if ta.cross(ltp_s1c, ltp_s1p)
+    mp1_a := mp1_b,  mt1_a := mt1_b,  ma1_a := ma1_b
+    mp1_b := mp1_cur,  mt1_b := mt1_cur,  ma1_b := ma1_cur
+    mp1_cur := cross_val(ltp_s1c, ltp_s1p)
+    mt1_cur := time
+    ma1_cur := i_k1 == atm
+
+if ta.cross(ltp_s2c, ltp_s2p)
+    mp2_a := mp2_b,  mt2_a := mt2_b,  ma2_a := ma2_b
+    mp2_b := mp2_cur,  mt2_b := mt2_cur,  ma2_b := ma2_cur
+    mp2_cur := cross_val(ltp_s2c, ltp_s2p)
+    mt2_cur := time
+    ma2_cur := i_k2 == atm
+
+if ta.cross(ltp_s3c, ltp_s3p)
+    mp3_a := mp3_b,  mt3_a := mt3_b,  ma3_a := ma3_b
+    mp3_b := mp3_cur,  mt3_b := mt3_cur,  ma3_b := ma3_cur
+    mp3_cur := cross_val(ltp_s3c, ltp_s3p)
+    mt3_cur := time
+    ma3_cur := i_k3 == atm
+
+if ta.cross(ltp_s4c, ltp_s4p)
+    mp4_a := mp4_b,  mt4_a := mt4_b,  ma4_a := ma4_b
+    mp4_b := mp4_cur,  mt4_b := mt4_cur,  ma4_b := ma4_cur
+    mp4_cur := cross_val(ltp_s4c, ltp_s4p)
+    mt4_cur := time
+    ma4_cur := i_k4 == atm
+
+if ta.cross(ltp_s5c, ltp_s5p)
+    mp5_a := mp5_b,  mt5_a := mt5_b,  ma5_a := ma5_b
+    mp5_b := mp5_cur,  mt5_b := mt5_cur,  ma5_b := ma5_cur
+    mp5_cur := cross_val(ltp_s5c, ltp_s5p)
+    mt5_cur := time
+    ma5_cur := i_k5 == atm
+
+if ta.cross(ltp_s6c, ltp_s6p)
+    mp6_a := mp6_b,  mt6_a := mt6_b,  ma6_a := ma6_b
+    mp6_b := mp6_cur,  mt6_b := mt6_cur,  ma6_b := ma6_cur
+    mp6_cur := cross_val(ltp_s6c, ltp_s6p)
+    mt6_cur := time
+    ma6_cur := i_k6 == atm
+
+float syn0 = ltp_s0c - ltp_s0p + i_k0
+float syn1 = ltp_s1c - ltp_s1p + i_k1
+float syn2 = ltp_s2c - ltp_s2p + i_k2
+float syn3 = ltp_s3c - ltp_s3p + i_k3
+float syn4 = ltp_s4c - ltp_s4p + i_k4
+float syn5 = ltp_s5c - ltp_s5p + i_k5
+float syn6 = ltp_s6c - ltp_s6p + i_k6
+
+var table tbl2 = table.new(
+     position.bottom_right, 6, 9,
+     bgcolor      = color.new(#080812, 8),
+     border_width = 1,
+     border_color = color.new(#2a2a4a, 0),
+     frame_width  = 2,
+     frame_color  = color.new(#4a4a8a, 0))
+
+is_today(t) => 
+    not na(t) and dayofmonth(t) == dayofmonth(timenow) and month(t) == month(timenow) and year(t) == year(timenow)
+
+f_mptxt(v, t, isAtm) =>
+    na(v) or not is_today(t) ? "–" : f_fmt(v) + (isAtm ? " ◉" : "") + " ( " + str.format_time(t, "HH:mm", "Asia/Kolkata") + " ) "
+
+f_mprow(row, strike, syn, a, b, cur, ta_, tb_, tcur_, aa, ab, acur) =>
+    string s = strike == atm ? str.tostring(strike) + " ◉" : str.tostring(strike)
+    table.cell(tbl2, 0, row, s,                    text_color=color.white)
+    table.cell(tbl2, 1, row, str.tostring(syn),                    text_color=color.white)
+    table.cell(tbl2, 2, row, f_mptxt(a,   ta_, aa),  text_color=color.yellow)
+    table.cell(tbl2, 3, row, f_mptxt(b,   tb_, ab),  text_color=color.orange)
+    table.cell(tbl2, 4, row, f_mptxt(cur, tcur_, acur), text_color=color.lime)
+
+if barstate.islast
+    // Headers
+    table.cell(tbl2, 0, 0, "Strike",    text_color=color.white)
+    table.cell(tbl2, 1, 0, "Syn Strike",    text_color=color.white)
+    table.cell(tbl2, 2, 0, "MP Prev2",  text_color=color.white)
+    table.cell(tbl2, 3, 0, "MP Prev1",  text_color=color.white)
+    table.cell(tbl2, 4, 0, "MP Current",text_color=color.white)
+
+    f_mprow(1, i_k0, syn0, mp0_a, mp0_b, mp0_cur, mt0_a, mt0_b, mt0_cur, ma0_a, ma0_b, ma0_cur)
+    f_mprow(2, i_k1, syn1, mp1_a, mp1_b, mp1_cur, mt1_a, mt1_b, mt1_cur, ma1_a, ma1_b, ma1_cur)
+    f_mprow(3, i_k2, syn2, mp2_a, mp2_b, mp2_cur, mt2_a, mt2_b, mt2_cur, ma2_a, ma2_b, ma2_cur)
+    f_mprow(4, i_k3, syn3, mp3_a, mp3_b, mp3_cur, mt3_a, mt3_b, mt3_cur, ma3_a, ma3_b, ma3_cur)
+    f_mprow(5, i_k4, syn4, mp4_a, mp4_b, mp4_cur, mt4_a, mt4_b, mt4_cur, ma4_a, ma4_b, ma4_cur)
+    f_mprow(6, i_k5, syn5, mp5_a, mp5_b, mp5_cur, mt5_a, mt5_b, mt5_cur, ma5_a, ma5_b, ma5_cur)
+    f_mprow(7, i_k6, syn6, mp6_a, mp6_b, mp6_cur, mt6_a, mt6_b, mt6_cur, ma6_a, ma6_b, ma6_cur)
