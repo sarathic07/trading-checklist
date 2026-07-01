@@ -78,7 +78,9 @@ function computeAnalysis(records) {
 }
 
 const fmt = (n, d = 2) =>
-  Number.isFinite(n) ? n.toLocaleString("en-IN", { maximumFractionDigits: d }) : "—";
+  Number.isFinite(n)
+    ? n.toLocaleString("en-IN", { maximumFractionDigits: d, useGrouping: false })
+    : "—";
 
 // ---- UI -------------------------------------------------------------------
 
