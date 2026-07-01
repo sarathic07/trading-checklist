@@ -192,11 +192,13 @@ export default function ATMStrikeAnalyzer() {
                 label={`Strike2 (ATM − ${result.step}) for CE`}
                 row={result.strike2Row}
                 widthDiff={result.widthDiff}
+                type="CE"
               />
               <StrikeCard
                 label={`Strike1 (ATM + ${result.step}) for PE`}
                 row={result.strike1Row}
                 widthDiff={result.widthDiff}
+                type="PE"
               />
             </div>
           </div>
@@ -206,7 +208,7 @@ export default function ATMStrikeAnalyzer() {
   );
 }
 
-function StrikeCard({ label, row, widthDiff }) {
+function StrikeCard({ label, row, widthDiff, type }) {
   const diff = row ? row.ceLtp - row.peLtp : null;
   return (
     <div className="strike-card">
@@ -216,7 +218,7 @@ function StrikeCard({ label, row, widthDiff }) {
         <div className="empty-text">No matching strike row found in the data.</div>
       ) : (
         <>
-          <div className="strike-value">{fmt(row.strike, 0)}</div>
+          <div className="strike-value">{`${fmt(row.strike, 0)} ${type}`}</div>
           <div className="strike-lines">
             <Line label="Strike1 − Strike2" value={fmt(widthDiff, 0)} />
             <Line label="CE − PE" value={fmt(diff)} accent />
