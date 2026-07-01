@@ -189,13 +189,13 @@ export default function ATMStrikeAnalyzer() {
             {/* Strike pair cards */}
             <div className="strike-grid">
               <StrikeCard
-                label={`Strike1 (ATM + ${result.step})`}
-                row={result.strike1Row}
+                label={`Strike2 (ATM − ${result.step}) for CE`}
+                row={result.strike2Row}
                 widthDiff={result.widthDiff}
               />
               <StrikeCard
-                label={`Strike2 (ATM − ${result.step})`}
-                row={result.strike2Row}
+                label={`Strike1 (ATM + ${result.step}) for PE`}
+                row={result.strike1Row}
                 widthDiff={result.widthDiff}
               />
             </div>
